@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { login } from "../api/api";
+import { register } from "../api/api";
 import { setToken } from "../api/auth";
 import { triggerToast } from "../api/toast";
 
@@ -15,10 +15,10 @@ async function submit() {
 	error.value = null;
 
 	try {
-		const data = await login(email.value, password.value);
+		const data = await register(email.value, password.value);
 		setToken(data.token);
 
-		triggerToast("Successfully logged in 🎉");
+		triggerToast("Account created & logged in 🎉");
 
 		setTimeout(() => {
 			router.push("/");
@@ -32,8 +32,8 @@ async function submit() {
 <template>
 	<div class="hero">
 		<div class="container">
-			<h1 class="hero-title">Login</h1>
-			<p class="hero-subtitle">Login to add your achievements</p>
+			<h1 class="hero-title">Register</h1>
+			<p class="hero-subtitle">Create an account to add wins</p>
 
 			<div class="glass-card col-6" style="margin-top: 40px">
 				<form @submit.prevent="submit">
@@ -53,15 +53,15 @@ async function submit() {
 						style="width: 100%; padding: 12px; margin-bottom: 16px"
 					/>
 
-					<button class="button" type="submit">Login</button>
+					<button class="button" type="submit">Register</button>
 
 					<p v-if="error" style="color: red; margin-top: 12px">
 						{{ error }}
 					</p>
 
 					<p style="margin-top: 16px">
-						No account yet?
-						<router-link to="/register">Register here</router-link>
+						Already have an account?
+						<router-link to="/login">Login</router-link>
 					</p>
 				</form>
 			</div>

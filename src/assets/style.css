@@ -202,3 +202,53 @@ body {
 .hover-float:hover {
 	transform: translateY(-6px);
 }
+.app-header {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	background: rgba(255, 255, 255, 0.6);
+	backdrop-filter: blur(14px);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.header-inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px 0;
+}
+
+.nav-left a,
+.nav-right a {
+	margin-right: 16px;
+	text-decoration: none;
+	color: rgb(var(--text));
+	font-weight: 500;
+}
+
+.search-input {
+	padding: 10px 14px;
+	border-radius: 999px;
+	border: 1px solid rgba(0, 0, 0, 0.1);
+	min-width: 240px;
+}
+
+.add-button {
+	font-size: 22px;
+	font-weight: bold;
+	padding: 6px 14px;
+	border-radius: 999px;
+	background: linear-gradient(
+		90deg,
+		rgba(var(--blue), 0.9),
+		rgba(var(--green), 0.9)
+	);
+	color: white;
+}
+
+.logout-button {
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-weight: 500;
+}

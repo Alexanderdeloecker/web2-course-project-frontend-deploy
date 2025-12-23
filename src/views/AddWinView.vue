@@ -5,28 +5,22 @@ import { addWin } from "../api/api";
 const title = ref("");
 const description = ref("");
 const category = ref("general");
-const error = ref(null);
-const success = ref(false);
 
-// TEMP: plak hier straks je JWT (tot login klaar is)
-const token = ref(
-	"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTRiMDhhOTJkYjgxZmFjNWM3ZWI3MjUiLCJlbWFpbCI6IkFkbEBnbWFpbC5jb20iLCJpYXQiOjE3NjY1MjUzNzUsImV4cCI6MTc2NzEzMDE3NX0.qVW5BUW5WdgD-kazNjwnVvpZfev-6mzhsa0vbI-Defc"
-);
+const error = ref("");
+const success = ref("");
 
 async function submit() {
-	error.value = null;
-	success.value = false;
+	error.value = "";
+	success.value = "";
 
 	try {
-		await addWin(
-			{
-				title: title.value,
-				description: description.value,
-				category: category.value,
-			},
-			token.value
-		);
-		success.value = true;
+		await addWin({
+			title: title.value,
+			description: description.value,
+			category: category.value,
+		});
+
+		success.value = "Win added successfully";
 		title.value = "";
 		description.value = "";
 		category.value = "general";
