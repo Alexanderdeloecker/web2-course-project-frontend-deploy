@@ -21,20 +21,18 @@ onMounted(async () => {
 
 		<div class="container">
 			<h1 class="hero-title">Wall of Fame</h1>
+			<div
+				class="glass-card glow-blue hover-float"
+				style="margin-top: 40px; max-width: 400px"
+			>
+				<h2 class="card-title">Test card</h2>
+				<p class="card-text">If this is glassy, CSS is perfect.</p>
+			</div>
+
 			<p class="hero-subtitle">Celebrating skills beyond the classroom.</p>
 
-			<p v-if="error">{{ error }}</p>
-
-			<div class="grid" style="margin-top: 40px">
-				<div
-					v-for="win in wins"
-					:key="win._id"
-					class="glass-card hover-float col-4"
-				>
-					<h2 class="card-title">{{ win.title }}</h2>
-					<p class="card-text">{{ win.description }}</p>
-					<span class="tag">{{ win.category }}</span>
-				</div>
+			<div class="grid" style="margin-top: 60px">
+				<!-- cards -->
 			</div>
 		</div>
 	</div>
