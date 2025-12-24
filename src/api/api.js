@@ -1,4 +1,5 @@
-import { token } from "./auth";
+// src/api/api.js
+import { getToken } from "./auth";
 
 const API_BASE_URL = "https://wall-of-fame-api.onrender.com";
 
@@ -9,11 +10,14 @@ export async function getWins() {
 }
 
 export async function addWin(win) {
+	const token = getToken();
+	if (!token) throw new Error("Not logged in");
+
 	const res = await fetch(`${API_BASE_URL}/api/wins`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
-			Authorization: `Bearer ${token.value}`,
+			Authorization: `Bearer ${token}`,
 		},
 		body: JSON.stringify(win),
 	});

@@ -1,11 +1,13 @@
 <script setup>
 import { useRouter } from "vue-router";
 import { isLoggedIn, clearToken } from "../api/auth";
+import { searchQuery } from "../api/search";
 
 const router = useRouter();
 
 function logout() {
 	clearToken();
+	searchQuery.value = ""; // reset search bij logout (optioneel maar netjes)
 	router.push("/login");
 }
 </script>
@@ -31,6 +33,7 @@ function logout() {
 
 		<!-- CENTER -->
 		<input
+			v-model="searchQuery"
 			type="text"
 			placeholder="Search wins..."
 			style="
@@ -44,7 +47,6 @@ function logout() {
 
 		<!-- RIGHT -->
 		<div style="display: flex; align-items: center; gap: 16px">
-			<!-- PLUS -->
 			<router-link
 				v-if="isLoggedIn"
 				to="/add-win"
@@ -64,7 +66,6 @@ function logout() {
 				+
 			</router-link>
 
-			<!-- LOGIN -->
 			<router-link
 				v-if="!isLoggedIn"
 				to="/login"
@@ -73,7 +74,6 @@ function logout() {
 				Login
 			</router-link>
 
-			<!-- LOGOUT -->
 			<button
 				v-if="isLoggedIn"
 				@click="logout"
