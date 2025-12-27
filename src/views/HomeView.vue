@@ -3,6 +3,7 @@ import { ref, onMounted, computed, nextTick, onBeforeUnmount } from "vue";
 import { getWins } from "../api/api";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
+import WinCard from "../components/WinCard.vue";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -26,17 +27,11 @@ function safeText(v, fallback = "") {
 }
 
 /**
- * Cloudinary optimalisatie via URL-transformatie.
- * Werkt alleen als het een Cloudinary URL is.
- *
- * presets:
- * - "card"    => snelle grid thumbnail
- * - "featured" => grote hero/featured
+ * Cloudinary optimalisatie via URL-transformatie
  */
 function cdn(url, preset = "card") {
 	if (!url || typeof url !== "string") return "";
 
-	// alleen cloudinary urls transformeren
 	if (!url.includes("res.cloudinary.com") || !url.includes("/upload/"))
 		return url;
 
@@ -57,7 +52,6 @@ onMounted(async () => {
 		loading.value = false;
 	}
 
-	// wacht tot DOM effectief gerenderd is (anders GSAP "target not found")
 	await nextTick();
 	initScrollStory();
 });
@@ -70,7 +64,6 @@ onBeforeUnmount(() => {
 
 /* ---------------- GSAP STORY ---------------- */
 function initScrollStory() {
-	// kill alles van vorige init (hot reload / route revisit)
 	ScrollTrigger.getAll().forEach((t) => t.kill());
 
 	/* ACT 1 — HERO */
@@ -91,31 +84,25 @@ function initScrollStory() {
 	}
 
 	/* ACT 2 — MEANING */
-	const meaningLines = gsap.utils.toArray(".meaning-line");
-	if (meaningLines.length) {
-		meaningLines.forEach((line) => {
-			gsap.fromTo(
-				line,
-				{ opacity: 0, y: 60 },
-				{
-					opacity: 1,
-					y: 0,
-					scrollTrigger: {
-						trigger: line,
-						start: "top 75%",
-						end: "top 40%",
-						scrub: true,
-					},
-				}
-			);
-		});
-	}
+	gsap.utils.toArray(".meaning-line").forEach((line) => {
+		gsap.fromTo(
+			line,
+			{ opacity: 0, y: 60 },
+			{
+				opacity: 1,
+				y: 0,
+				scrollTrigger: {
+					trigger: line,
+					start: "top 75%",
+					end: "top 40%",
+					scrub: true,
+				},
+			}
+		);
+	});
 
 	/* ACT 3 — FEATURED */
-	if (
-		document.querySelector(".scene-featured") &&
-		document.querySelector(".featured-card")
-	) {
+	if (document.querySelector(".featured-card")) {
 		gsap.from(".featured-card", {
 			scale: 0.9,
 			opacity: 0,
@@ -131,7 +118,7 @@ function initScrollStory() {
 
 	/* ACT 4 — GRID */
 	const cards = gsap.utils.toArray(".win-card");
-	if (document.querySelector(".scene-grid") && cards.length) {
+	if (cards.length) {
 		gsap.from(cards, {
 			opacity: 0,
 			y: 60,
@@ -170,7 +157,7 @@ function initScrollStory() {
 		<!-- ACT 3: FEATURED -->
 		<section class="scene scene-featured" v-if="featuredWin">
 			<div class="featured-card">
-				<div v-if="featuredWin.imageUrl" class="featured-media">
+				<div class="featured-media">
 					<img :src="cdn(featuredWin.imageUrl, 'featured')" alt="" />
 				</div>
 
@@ -194,21 +181,15 @@ function initScrollStory() {
 			<div v-if="loading" class="loading">Loading…</div>
 
 			<div v-else class="grid">
-				<article v-for="win in newestWins" :key="win._id" class="win-card">
-					<div v-if="win.imageUrl" class="card-media">
-						<img :src="cdn(win.imageUrl, 'card')" alt="" loading="lazy" />
-					</div>
-
-					<div class="card-body">
-						<span class="pill">{{ win.category || "general" }}</span>
-						<h3 class="card-title">
-							{{ safeText(win.title, "Untitled win") }}
-						</h3>
-						<p class="card-text">
-							{{ safeText(win.description, "No description provided.") }}
-						</p>
-					</div>
-				</article>
+				<WinCard
+					v-for="win in newestWins"
+					:key="win._id"
+					:win="{
+						...win,
+						imageUrl: cdn(win.imageUrl, 'card'),
+					}"
+					class="win-card"
+				/>
 			</div>
 		</section>
 
@@ -216,19 +197,19 @@ function initScrollStory() {
 		<section class="scene scene-cta">
 			<h2>Your story belongs here.</h2>
 			<p>Add your achievement to the Wall of Fame.</p>
-			<router-link to="/add-win" class="cta-btn">Add your win →</router-link>
+			<router-link to="/add-win" class="cta-btn"> Add your win → </router-link>
 		</section>
 	</section>
 </template>
 
 <style scoped>
-/* ---------- BASE ---------- */
+/* BASE */
 .home {
 	font-family: system-ui, sans-serif;
 	color: #111;
 }
 
-/* ---------- SCENES ---------- */
+/* SCENES */
 .scene {
 	min-height: 100vh;
 	padding: 120px 8vw;
@@ -238,7 +219,7 @@ function initScrollStory() {
 	flex-direction: column;
 }
 
-/* ---------- HERO ---------- */
+/* HERO */
 .scene-hero {
 	position: relative;
 	padding: 0;
@@ -280,7 +261,7 @@ function initScrollStory() {
 	opacity: 0.6;
 }
 
-/* ---------- MEANING ---------- */
+/* MEANING */
 .scene-meaning {
 	background: #fafafa;
 	text-align: center;
@@ -297,7 +278,7 @@ function initScrollStory() {
 	opacity: 1;
 }
 
-/* ---------- FEATURED ---------- */
+/* FEATURED */
 .scene-featured {
 	background: #fff;
 }
@@ -319,7 +300,6 @@ function initScrollStory() {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
-	display: block;
 }
 
 .featured-body {
@@ -343,12 +323,11 @@ function initScrollStory() {
 }
 
 .category {
-	display: inline-block;
 	margin-top: 14px;
 	color: #888;
 }
 
-/* ---------- GRID ---------- */
+/* GRID */
 .scene-grid {
 	background: #f5f5f5;
 }
@@ -366,45 +345,7 @@ function initScrollStory() {
 	max-width: 1200px;
 }
 
-.win-card {
-	background: white;
-	border-radius: 14px;
-	overflow: hidden;
-	box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-	display: flex;
-	flex-direction: column;
-}
-
-.card-media {
-	height: 200px;
-}
-
-.card-media img {
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-	display: block;
-}
-
-.card-body {
-	padding: 22px;
-}
-
-.pill {
-	font-size: 0.75rem;
-	color: #555;
-}
-
-.card-title {
-	margin: 10px 0 8px;
-}
-
-.card-text {
-	color: #444;
-	line-height: 1.55;
-}
-
-/* ---------- CTA ---------- */
+/* CTA */
 .scene-cta {
 	background: #111;
 	color: white;

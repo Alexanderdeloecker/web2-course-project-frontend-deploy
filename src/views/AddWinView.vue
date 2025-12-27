@@ -1,192 +1,691 @@
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
-import { getToken } from "../api/auth";
-import { triggerToast } from "../api/toast";
+import { ref, onMounted, onBeforeUnmount, computed, nextTick } from "vue";
+import { getWins } from "../api/api";
+import WinCard from "../components/WinCard.vue";
 
-const router = useRouter();
+import gsap from "gsap";
+import ScrollTrigger from "gsap/ScrollTrigger";
+gsap.registerPlugin(ScrollTrigger);
 
-/* API */
-const API_URL = import.meta.env.VITE_API_URL;
+/* ---------------- STATE ---------------- */
+const wins = ref([]);
+const loading = ref(true);
 
-/* form state */
-const title = ref("");
-const description = ref("");
-const category = ref("general");
-const imageFile = ref(null);
-const imagePreview = ref(null);
-const loading = ref(false);
+const newestWins = computed(() =>
+	[...wins.value].sort(
+		(a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+	)
+);
 
-/* image select */
-function onImageChange(e) {
-	const file = e.target.files[0];
-	if (!file) return;
+const featuredWin = computed(() => newestWins.value[0] || null);
+const gridWins = computed(() => newestWins.value.slice(0, 24));
 
-	imageFile.value = file;
-	imagePreview.value = URL.createObjectURL(file);
+/* ---------------- GSAP CLEANUP ---------------- */
+function killScroll() {
+	ScrollTrigger.getAll().forEach((t) => t.kill());
+	gsap.killTweensOf("*");
 }
 
-/* submit */
-async function submit() {
-	if (title.value.trim().length < 3) {
-		triggerToast("Title must be at least 3 characters", "error");
-		return;
-	}
+/* ---------------- GSAP INIT ---------------- */
+async function initScrollStory() {
+	await nextTick();
 
-	const formData = new FormData();
-	formData.append("title", title.value);
-	formData.append("description", description.value);
-	formData.append("category", category.value);
+	killScroll();
 
-	if (imageFile.value) {
-		formData.append("image", imageFile.value); // 👈 moet exact "image" zijn
-	}
+	// Respect "reduced motion"
+	const reduce =
+		window.matchMedia &&
+		window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-	loading.value = true;
+	if (reduce) return;
 
-	try {
-		const res = await fetch(`${API_URL}/wins`, {
-			method: "POST",
-			headers: {
-				Authorization: `Bearer ${getToken()}`,
+	/* ========== ACT 1 — HERO (pinned depth) ========== */
+	const heroTl = gsap.timeline({
+		scrollTrigger: {
+			trigger: ".scene-hero",
+			start: "top top",
+			end: "bottom top",
+			scrub: true,
+			pin: ".hero-pin",
+			pinSpacing: true,
+		},
+	});
+
+	heroTl
+		.fromTo(
+			".hero-title",
+			{ y: 40, opacity: 0, filter: "blur(10px)" },
+			{ y: 0, opacity: 1, filter: "blur(0px)", duration: 0.6 },
+			0
+		)
+		.fromTo(
+			".hero-subtitle",
+			{ y: 24, opacity: 0, filter: "blur(8px)" },
+			{ y: 0, opacity: 1, filter: "blur(0px)", duration: 0.6 },
+			0.08
+		)
+		.fromTo(
+			".hero-glass",
+			{ y: 30, opacity: 0, filter: "blur(12px)" },
+			{ y: 0, opacity: 1, filter: "blur(0px)", duration: 0.7 },
+			0.12
+		)
+		// Depth: orbs drift slower than foreground
+		.to(".orb-a", { y: -80, x: 40, scale: 1.12, ease: "none" }, 0)
+		.to(".orb-b", { y: -140, x: -30, scale: 1.18, ease: "none" }, 0)
+		.to(".orb-c", { y: -110, x: 20, scale: 1.14, ease: "none" }, 0)
+		// Foreground subtle push-in
+		.to(
+			".hero-pin",
+			{ scale: 1.02, transformOrigin: "50% 50%", ease: "none" },
+			0
+		)
+		// Fade out hero copy near end
+		.to(
+			".hero-copy",
+			{ opacity: 0, y: -20, filter: "blur(10px)", ease: "none" },
+			0.65
+		);
+
+	/* ========== ACT 2 — MEANING (progressive reveal) ========== */
+	gsap.utils.toArray(".reveal").forEach((el) => {
+		gsap.fromTo(
+			el,
+			{ y: 24, opacity: 0, filter: "blur(10px)" },
+			{
+				y: 0,
+				opacity: 1,
+				filter: "blur(0px)",
+				duration: 0.7,
+				ease: "power2.out",
+				scrollTrigger: {
+					trigger: el,
+					start: "top 80%",
+					end: "top 55%",
+					toggleActions: "play none none reverse",
+				},
+			}
+		);
+	});
+
+	/* ========== ACT 3 — FEATURED (image depth + text stagger) ========== */
+	gsap.fromTo(
+		".featured-card",
+		{ y: 40, opacity: 0, filter: "blur(12px)" },
+		{
+			y: 0,
+			opacity: 1,
+			filter: "blur(0px)",
+			duration: 0.9,
+			ease: "power2.out",
+			scrollTrigger: {
+				trigger: ".scene-featured",
+				start: "top 75%",
+				toggleActions: "play none none reverse",
 			},
-			body: formData,
-		});
-
-		if (!res.ok) {
-			const err = await res.json();
-			throw new Error(err.error || "Failed to create win");
 		}
+	);
 
-		triggerToast("Win added 🎉", "success");
-		router.push("/");
-	} catch (err) {
-		triggerToast(err.message || "Something went wrong", "error");
+	gsap.fromTo(
+		".featured-media",
+		{ scale: 1.06 },
+		{
+			scale: 1,
+			ease: "none",
+			scrollTrigger: {
+				trigger: ".scene-featured",
+				start: "top 75%",
+				end: "bottom 20%",
+				scrub: true,
+			},
+		}
+	);
+
+	/* ========== ACT 4 — GRID (stagger + slight parallax per card) ========== */
+	const cards = gsap.utils.toArray(".win-card");
+	gsap.fromTo(
+		cards,
+		{ y: 22, opacity: 0, filter: "blur(10px)" },
+		{
+			y: 0,
+			opacity: 1,
+			filter: "blur(0px)",
+			duration: 0.7,
+			ease: "power2.out",
+			stagger: 0.04,
+			scrollTrigger: {
+				trigger: ".scene-grid",
+				start: "top 75%",
+				toggleActions: "play none none reverse",
+			},
+		}
+	);
+
+	// Micro depth while scrolling: small y-shift based on each card index
+	cards.forEach((card, i) => {
+		const amt = (i % 6) * 6 + 6; // deterministic, not random
+		gsap.fromTo(
+			card,
+			{ y: 0 },
+			{
+				y: -amt,
+				ease: "none",
+				scrollTrigger: {
+					trigger: card,
+					start: "top bottom",
+					end: "bottom top",
+					scrub: true,
+				},
+			}
+		);
+	});
+
+	ScrollTrigger.refresh();
+}
+
+/* ---------------- FETCH ---------------- */
+onMounted(async () => {
+	try {
+		const data = await getWins();
+		wins.value = Array.isArray(data) ? data : [];
 	} finally {
 		loading.value = false;
+		await initScrollStory();
 	}
-}
+});
+
+onBeforeUnmount(() => {
+	killScroll();
+});
 </script>
 
 <template>
-	<section class="container">
-		<div class="form-card">
-			<h1 class="form-title">Add a win</h1>
+	<main class="home">
+		<!-- ACT 1 — HERO -->
+		<section class="scene-hero">
+			<div class="hero-pin">
+				<div class="hero-bg">
+					<div class="orb orb-a"></div>
+					<div class="orb orb-b"></div>
+					<div class="orb orb-c"></div>
+					<div class="grain"></div>
+				</div>
 
-			<label class="label">
-				Title
-				<input
-					v-model="title"
-					type="text"
-					placeholder="Won a piano competition"
-				/>
-			</label>
+				<div class="container hero-content">
+					<div class="hero-copy">
+						<h1 class="hero-title">Wall of Fame</h1>
+						<p class="hero-subtitle">
+							Achievements buiten het curriculum. Echt, menselijk, en het mag
+							gezien worden.
+						</p>
 
-			<label class="label">
-				Description
-				<textarea
-					v-model="description"
-					placeholder="Tell us more about this achievement"
-				/>
-			</label>
+						<div class="hero-glass">
+							<div class="hero-kpi">
+								<div class="kpi">
+									<div class="kpi-num">{{ loading ? "—" : wins.length }}</div>
+									<div class="kpi-label">wins</div>
+								</div>
+								<div class="kpi">
+									<div class="kpi-num">
+										{{ loading ? "—" : featuredWin?.category || "—" }}
+									</div>
+									<div class="kpi-label">featured</div>
+								</div>
+								<div class="kpi">
+									<div class="kpi-num">MCT</div>
+									<div class="kpi-label">community</div>
+								</div>
+							</div>
 
-			<label class="label">
-				Category
-				<select v-model="category">
-					<option value="general">General</option>
-					<option value="music">Music</option>
-					<option value="sports">Sports</option>
-					<option value="volunteering">Volunteering</option>
-					<option value="tech">Tech</option>
-				</select>
-			</label>
-
-			<label class="label">
-				Image (optional)
-				<input type="file" accept="image/*" @change="onImageChange" />
-			</label>
-
-			<!-- IMAGE PREVIEW -->
-			<div v-if="imagePreview" class="image-preview">
-				<img :src="imagePreview" alt="Preview" />
+							<div class="hero-hint">
+								<span class="dot"></span>
+								Scroll voor de story
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
+		</section>
 
-			<button class="btn" :disabled="loading" @click="submit">
-				{{ loading ? "Saving…" : "Add win" }}
-			</button>
-		</div>
-	</section>
+		<!-- ACT 2 — MEANING -->
+		<section class="scene-meaning">
+			<div class="container">
+				<div class="meaning-grid">
+					<div class="meaning-block reveal">
+						<h2 class="section-title">Niet alleen projecten tellen.</h2>
+						<p class="section-text">
+							Sport, muziek, vrijwilligerswerk, ondernemen, tech, creatie… dit
+							is waar karakter en discipline zichtbaar wordt.
+						</p>
+					</div>
+
+					<div class="meaning-block reveal">
+						<h3 class="section-subtitle">Editorial, maar met energie.</h3>
+						<p class="section-text">
+							Grote typografie, veel ruimte, en motion die je door de pagina
+							“trekt” — zonder carousels, zonder drukte.
+						</p>
+					</div>
+
+					<div class="meaning-block reveal">
+						<h3 class="section-subtitle">Elke win = een verhaal.</h3>
+						<p class="section-text">
+							Je hoeft geen “perfect profiel” te hebben. Het gaat om groei,
+							effort, en dingen die je trots maken.
+						</p>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- ACT 3 — FEATURED -->
+		<section class="scene-featured" v-if="featuredWin">
+			<div class="container">
+				<div class="featured-card">
+					<div class="featured-media">
+						<img
+							class="featured-img"
+							:src="featuredWin.imageUrl"
+							:alt="featuredWin.title"
+							loading="lazy"
+						/>
+					</div>
+
+					<div class="featured-copy">
+						<div class="badge">Featured</div>
+						<h2 class="featured-title">{{ featuredWin.title }}</h2>
+						<p class="featured-desc">{{ featuredWin.description }}</p>
+
+						<div class="meta">
+							<span class="pill">{{ featuredWin.category }}</span>
+							<span class="pill" v-if="featuredWin.createdAt">
+								{{ new Date(featuredWin.createdAt).toLocaleDateString() }}
+							</span>
+						</div>
+
+						<router-link class="cta" to="/add">Add a win</router-link>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- ACT 4 — GRID -->
+		<section class="scene-grid">
+			<div class="container">
+				<div class="grid-head reveal">
+					<h2 class="section-title">Latest wins</h2>
+					<p class="section-text">
+						Een selectie van de nieuwste posts. Scroll, ontdek, voel de vibe.
+					</p>
+				</div>
+
+				<div class="masonry" v-if="!loading">
+					<WinCard
+						v-for="w in gridWins"
+						:key="w._id"
+						:win="w"
+						class="win-card"
+					/>
+				</div>
+
+				<div class="loading" v-else>
+					<div class="skeleton"></div>
+					<div class="skeleton"></div>
+					<div class="skeleton"></div>
+				</div>
+			</div>
+		</section>
+
+		<!-- CTA -->
+		<section class="scene-cta">
+			<div class="container">
+				<div class="cta-card reveal">
+					<h2 class="section-title">Drop jouw win.</h2>
+					<p class="section-text">
+						Maak het zichtbaar. Eén foto, één zin, één categorie. Klaar.
+					</p>
+					<router-link class="cta big" to="/add"
+						>Add your achievement</router-link
+					>
+				</div>
+			</div>
+		</section>
+	</main>
 </template>
 
 <style scoped>
+.home {
+	min-height: 100vh;
+}
+
+/* Containers */
 .container {
-	max-width: 720px;
-	margin: 80px auto;
-	padding: 0 20px;
+	width: min(1100px, calc(100% - 48px));
+	margin: 0 auto;
 }
 
-.form-card {
-	background: #ffffff;
-	border-radius: 18px;
-	padding: 36px;
-	box-shadow: 0 30px 60px rgba(0, 0, 0, 0.08);
+/* HERO */
+.scene-hero {
+	position: relative;
+	height: 120vh;
 }
 
-.form-title {
-	font-size: 28px;
-	margin-bottom: 28px;
+.hero-pin {
+	position: relative;
+	height: 100vh;
+	display: grid;
+	place-items: center;
+	transform: translateZ(0);
 }
 
-.label {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-	margin-bottom: 18px;
-	font-weight: 500;
-}
-
-input,
-textarea,
-select {
-	padding: 12px 14px;
-	border-radius: 10px;
-	border: 1px solid #ddd;
-	font-size: 15px;
-	font-family: inherit;
-}
-
-textarea {
-	min-height: 110px;
-	resize: vertical;
-}
-
-.image-preview {
-	margin: 18px 0;
-	border-radius: 14px;
+.hero-bg {
+	position: absolute;
+	inset: 0;
 	overflow: hidden;
-	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+	background: radial-gradient(
+		1200px 600px at 50% 30%,
+		rgba(255, 255, 255, 0.08),
+		transparent 60%
+	);
 }
 
-.image-preview img {
-	width: 100%;
-	height: 260px;
-	object-fit: cover;
-	display: block;
-}
-
-.btn {
-	margin-top: 24px;
-	padding: 14px;
+.orb {
+	position: absolute;
+	width: 520px;
+	height: 520px;
 	border-radius: 999px;
-	border: none;
-	background: #111;
-	color: white;
-	font-size: 16px;
-	cursor: pointer;
+	filter: blur(12px);
+	opacity: 0.55;
+	transform: translateZ(0);
 }
 
-.btn:disabled {
-	opacity: 0.6;
-	cursor: not-allowed;
+.orb-a {
+	top: 10%;
+	left: -10%;
+	background: rgba(255, 80, 80, 0.2);
+}
+.orb-b {
+	top: 5%;
+	right: -12%;
+	background: rgba(80, 255, 160, 0.18);
+}
+.orb-c {
+	bottom: -18%;
+	left: 25%;
+	background: rgba(80, 160, 255, 0.18);
+}
+
+.grain {
+	position: absolute;
+	inset: 0;
+	opacity: 0.2;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+	mix-blend-mode: overlay;
+	pointer-events: none;
+}
+
+.hero-content {
+	position: relative;
+	z-index: 2;
+}
+
+.hero-copy {
+	max-width: 760px;
+}
+
+.hero-title {
+	font-size: clamp(48px, 6vw, 84px);
+	line-height: 0.95;
+	letter-spacing: -0.04em;
+	margin: 0;
+}
+
+.hero-subtitle {
+	margin-top: 14px;
+	font-size: clamp(16px, 1.8vw, 20px);
+	opacity: 0.82;
+	max-width: 56ch;
+}
+
+.hero-glass {
+	margin-top: 26px;
+	border-radius: 24px;
+	padding: 18px 18px 16px 18px;
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	backdrop-filter: blur(14px);
+	box-shadow: 0 12px 50px rgba(0, 0, 0, 0.12);
+}
+
+.hero-kpi {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 12px;
+}
+
+.kpi-num {
+	font-size: 18px;
+	letter-spacing: -0.02em;
+}
+
+.kpi-label {
+	font-size: 12px;
+	opacity: 0.72;
+	margin-top: 2px;
+	text-transform: lowercase;
+}
+
+.hero-hint {
+	margin-top: 12px;
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	opacity: 0.75;
+	font-size: 13px;
+}
+
+.hero-hint .dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.8);
+	box-shadow: 0 0 16px rgba(255, 255, 255, 0.35);
+}
+
+/* SECTIONS */
+.scene-meaning,
+.scene-featured,
+.scene-grid,
+.scene-cta {
+	padding: 84px 0;
+}
+
+.section-title {
+	font-size: clamp(28px, 3.2vw, 44px);
+	letter-spacing: -0.03em;
+	margin: 0;
+}
+
+.section-subtitle {
+	font-size: 18px;
+	letter-spacing: -0.01em;
+	margin: 0 0 8px 0;
+}
+
+.section-text {
+	margin-top: 14px;
+	opacity: 0.8;
+	line-height: 1.6;
+	max-width: 70ch;
+}
+
+/* MEANING GRID */
+.meaning-grid {
+	display: grid;
+	grid-template-columns: 1.2fr 1fr 1fr;
+	gap: 28px;
+}
+
+.meaning-block {
+	border-radius: 24px;
+	padding: 22px;
+	background: rgba(255, 255, 255, 0.04);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(10px);
+}
+
+/* FEATURED */
+.featured-card {
+	display: grid;
+	grid-template-columns: 1.2fr 0.8fr;
+	gap: 24px;
+	border-radius: 28px;
+	padding: 18px;
+	background: rgba(255, 255, 255, 0.05);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	backdrop-filter: blur(12px);
+	box-shadow: 0 20px 80px rgba(0, 0, 0, 0.14);
+	overflow: hidden;
+}
+
+.featured-media {
+	border-radius: 22px;
+	overflow: hidden;
+	position: relative;
+	min-height: 320px;
+}
+
+.featured-img {
+	width: 100%;
+	height: 100%;
+	display: block;
+	object-fit: cover;
+	transform: translateZ(0);
+}
+
+.featured-copy {
+	padding: 10px 6px 6px 6px;
+}
+
+.badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 6px 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	opacity: 0.85;
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.featured-title {
+	margin: 14px 0 0 0;
+	font-size: 34px;
+	letter-spacing: -0.03em;
+	line-height: 1.05;
+}
+
+.featured-desc {
+	margin-top: 12px;
+	opacity: 0.82;
+	line-height: 1.6;
+}
+
+.meta {
+	margin-top: 14px;
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.pill {
+	font-size: 12px;
+	padding: 7px 10px;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	opacity: 0.9;
+}
+
+/* CTA LINKS */
+.cta {
+	margin-top: 18px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 10px 14px;
+	border-radius: 14px;
+	text-decoration: none;
+	background: rgba(255, 255, 255, 0.1);
+	border: 1px solid rgba(255, 255, 255, 0.14);
+	backdrop-filter: blur(10px);
+	transition: transform 180ms ease, background 180ms ease,
+		border-color 180ms ease;
+}
+
+.cta:hover {
+	transform: translateY(-2px);
+	background: rgba(255, 255, 255, 0.14);
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+.cta.big {
+	padding: 12px 16px;
+	border-radius: 16px;
+}
+
+/* GRID HEAD */
+.grid-head {
+	margin-bottom: 22px;
+}
+
+/* MASONRY (lightweight) */
+.masonry {
+	column-count: 3;
+	column-gap: 18px;
+}
+
+@media (max-width: 980px) {
+	.meaning-grid {
+		grid-template-columns: 1fr;
+	}
+	.featured-card {
+		grid-template-columns: 1fr;
+	}
+	.masonry {
+		column-count: 2;
+	}
+}
+
+@media (max-width: 560px) {
+	.container {
+		width: min(1100px, calc(100% - 28px));
+	}
+	.masonry {
+		column-count: 1;
+	}
+}
+
+/* LOADING SKELETON */
+.loading {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 18px;
+}
+
+.skeleton {
+	height: 220px;
+	border-radius: 22px;
+	background: rgba(255, 255, 255, 0.06);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* CTA SECTION */
+.cta-card {
+	border-radius: 28px;
+	padding: 26px;
+	background: rgba(255, 255, 255, 0.05);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	backdrop-filter: blur(12px);
 }
 </style>

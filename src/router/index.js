@@ -1,15 +1,34 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
-import RegisterView from "../views/RegisterView.vue";
+import AuthView from "../views/AuthView.vue";
 import { isLoggedIn } from "../api/auth";
 
-const LoginView = () => import("../views/LoginView.vue");
 const AddWinView = () => import("../views/AddWinView.vue");
+const SearchResultsView = () => import("../views/SearchResultsView.vue");
+const WinDetailView = () => import("../views/WinDetailView.vue");
+const ProfileView = () => import("../views/ProfileView.vue");
 
 const routes = [
 	{ path: "/", name: "home", component: HomeView },
-	{ path: "/login", name: "login", component: LoginView },
-	{ path: "/register", name: "register", component: RegisterView },
+
+	{ path: "/login", name: "login", component: AuthView },
+	{ path: "/register", name: "register", component: AuthView },
+
+	{ path: "/search", name: "search", component: SearchResultsView },
+
+	{
+		path: "/wins/:id",
+		name: "win-detail",
+		component: WinDetailView,
+	},
+
+	{
+		path: "/profile",
+		name: "profile",
+		component: ProfileView,
+		meta: { requiresAuth: true },
+	},
+
 	{
 		path: "/add-win",
 		name: "add-win",
@@ -25,7 +44,7 @@ const router = createRouter({
 
 router.beforeEach((to) => {
 	if (to.meta.requiresAuth && !isLoggedIn.value) {
-		return "/login";
+		return { name: "login" };
 	}
 });
 
