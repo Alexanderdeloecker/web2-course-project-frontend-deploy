@@ -17,8 +17,15 @@ const newestWins = computed(() =>
 		(a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
 	)
 );
+const latestSixWins = computed(() => newestWins.value.slice(0, 6));
 
 const featuredWin = computed(() => newestWins.value[0] || null);
+
+/* rows voor Latest wins (max 9) */
+const rows = computed(() => [
+	newestWins.value.slice(0, 3),
+	newestWins.value.slice(3, 6),
+]);
 
 /* ---------------- HELPERS ---------------- */
 function safeText(v, fallback = "") {
@@ -26,12 +33,8 @@ function safeText(v, fallback = "") {
 	return fallback;
 }
 
-/**
- * Cloudinary optimalisatie via URL-transformatie
- */
 function cdn(url, preset = "card") {
 	if (!url || typeof url !== "string") return "";
-
 	if (!url.includes("res.cloudinary.com") || !url.includes("/upload/"))
 		return url;
 
@@ -116,19 +119,67 @@ function initScrollStory() {
 		});
 	}
 
-	/* ACT 4 — GRID */
-	const cards = gsap.utils.toArray(".win-card");
-	if (cards.length) {
-		gsap.from(cards, {
-			opacity: 0,
-			y: 60,
-			stagger: 0.08,
-			scrollTrigger: {
-				trigger: ".scene-grid",
-				start: "top 70%",
-			},
-		});
-	}
+	/* ACT 4 — LATEST WINS (Profile-style timing) */
+	const grid = document.querySelector(".scene-grid");
+	if (!grid) return;
+
+	const tl = gsap.timeline({
+		scrollTrigger: {
+			trigger: grid,
+			start: "top top",
+			end: "+=160%",
+			scrub: true,
+			pin: true,
+			anticipatePin: 1,
+		},
+	});
+
+	// initial states
+	gsap.set(".scene-grid .row-left", { xPercent: -18, opacity: 0.9 });
+	gsap.set(".scene-grid .row-right", { xPercent: 18, opacity: 0.9 });
+	gsap.set(".scene-grid .win-card", { y: 30, opacity: 0 });
+
+	// title first
+	tl.fromTo(
+		".grid-title",
+		{ opacity: 0, y: 30 },
+		{ opacity: 1, y: 0, duration: 0.25 },
+		0
+	);
+
+	// rows converge
+	tl.to(
+		".scene-grid .row-left",
+		{
+			xPercent: 0,
+			duration: 0.8,
+			ease: "power2.out",
+		},
+		0.15
+	);
+
+	tl.to(
+		".scene-grid .row-right",
+		{
+			xPercent: 0,
+			duration: 0.8,
+			ease: "power2.out",
+		},
+		0.22
+	);
+
+	// cards reveal
+	tl.to(
+		".scene-grid .win-card",
+		{
+			opacity: 1,
+			y: 0,
+			duration: 0.45,
+			stagger: 0.06,
+			ease: "power2.out",
+		},
+		0.35
+	);
 }
 </script>
 
@@ -174,22 +225,26 @@ function initScrollStory() {
 			</div>
 		</section>
 
-		<!-- ACT 4: GRID -->
+		<!-- ACT 4: LATEST WINS -->
 		<section class="scene scene-grid">
 			<h2 class="grid-title">Latest wins</h2>
 
-			<div v-if="loading" class="loading">Loading…</div>
+			<div v-if="loading">Loading…</div>
 
-			<div v-else class="grid">
-				<WinCard
-					v-for="win in newestWins"
-					:key="win._id"
-					:win="{
-						...win,
-						imageUrl: cdn(win.imageUrl, 'card'),
-					}"
-					class="win-card"
-				/>
+			<div v-else class="wins-rows">
+				<div
+					v-for="(row, i) in rows"
+					:key="i"
+					class="wins-row"
+					:class="i % 2 === 0 ? 'row-right' : 'row-left'"
+				>
+					<WinCard
+						v-for="win in row"
+						:key="win._id"
+						:win="{ ...win, imageUrl: cdn(win.imageUrl, 'card') }"
+						class="win-card"
+					/>
+				</div>
 			</div>
 		</section>
 
@@ -327,7 +382,7 @@ function initScrollStory() {
 	color: #888;
 }
 
-/* GRID */
+/* LATEST WINS */
 .scene-grid {
 	background: #f5f5f5;
 }
@@ -337,12 +392,17 @@ function initScrollStory() {
 	margin-bottom: 60px;
 }
 
-.grid {
+.wins-rows {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-	gap: 32px;
+	gap: 36px;
 	width: 100%;
 	max-width: 1200px;
+}
+
+.wins-row {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 28px;
 }
 
 /* CTA */

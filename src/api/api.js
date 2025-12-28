@@ -3,23 +3,39 @@ import { getToken } from "./auth";
 
 const API_BASE_URL = "https://wall-of-fame-api.onrender.com";
 
+/* ---------- PUBLIC ---------- */
 export async function getWins() {
 	const res = await fetch(`${API_BASE_URL}/api/wins`);
 	if (!res.ok) throw new Error("Failed to fetch wins");
 	return res.json();
 }
 
-export async function addWin(win) {
+/* ---------- PRIVATE (PROFILE) ---------- */
+export async function getMyWins() {
+	const token = getToken();
+	if (!token) throw new Error("Not logged in");
+
+	const res = await fetch(`${API_BASE_URL}/api/wins/me`, {
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	});
+
+	if (!res.ok) throw new Error("Failed to fetch user wins");
+	return res.json();
+}
+
+/* ---------- MUTATIONS ---------- */
+export async function addWin(formData) {
 	const token = getToken();
 	if (!token) throw new Error("Not logged in");
 
 	const res = await fetch(`${API_BASE_URL}/api/wins`, {
 		method: "POST",
 		headers: {
-			"Content-Type": "application/json",
 			Authorization: `Bearer ${token}`,
 		},
-		body: JSON.stringify(win),
+		body: formData, // ⬅️ FormData, GEEN JSON
 	});
 
 	const data = await res.json();
@@ -28,6 +44,7 @@ export async function addWin(win) {
 	return data;
 }
 
+/* ---------- AUTH ---------- */
 export async function login(email, password) {
 	const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
 		method: "POST",
@@ -41,11 +58,11 @@ export async function login(email, password) {
 	return data;
 }
 
-export async function register(email, password) {
+export async function register(email, password, name) {
 	const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ email, password }),
+		body: JSON.stringify({ email, password, name }),
 	});
 
 	const data = await res.json();

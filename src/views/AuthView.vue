@@ -12,6 +12,7 @@ const email = ref("");
 const password = ref("");
 const loading = ref(false);
 const error = ref(null);
+const name = ref("");
 
 onMounted(() => {
 	mode.value = route.path.includes("register") ? "register" : "login";
@@ -39,7 +40,7 @@ async function submit() {
 			setToken(data.token);
 			router.push("/");
 		} else {
-			await register(email.value, password.value);
+			await register(email.value, password.value, name.value);
 			router.push("/login");
 		}
 	} catch (err) {
@@ -74,6 +75,14 @@ async function submit() {
 				<h2>{{ mode === "login" ? "Login" : "Register" }}</h2>
 
 				<input v-model="email" type="email" placeholder="Email" />
+
+				<input
+					v-if="mode === 'register'"
+					v-model="name"
+					type="text"
+					placeholder="Your name"
+				/>
+
 				<input v-model="password" type="password" placeholder="Password" />
 
 				<button class="primary" @click="submit" :disabled="loading">
