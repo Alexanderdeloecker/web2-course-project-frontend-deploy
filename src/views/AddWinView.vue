@@ -66,10 +66,13 @@ async function submit() {
 					<option value="volunteer">Volunteer</option>
 				</select>
 
-				<input type="file" accept="image/*" @change="onFileChange" />
+				<label class="btn file-btn">
+					Choose image
+					<input type="file" accept="image/*" @change="onFileChange" hidden />
+				</label>
 
-				<button :disabled="loading">
-					{{ loading ? "Uploading…" : "Add win" }}
+				<button class="btn" type="submit" :disabled="loading">
+					{{ loading ? "Uploading..." : "Add win" }}
 				</button>
 
 				<p v-if="error" class="error">{{ error }}</p>

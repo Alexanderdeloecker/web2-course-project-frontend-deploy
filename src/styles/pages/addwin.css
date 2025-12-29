@@ -3,6 +3,7 @@
 	background: #f4f5f8;
 	display: grid;
 	place-items: center;
+	overflow-y: scroll;
 }
 
 .add .container {
