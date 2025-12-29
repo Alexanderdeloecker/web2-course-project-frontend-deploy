@@ -29,7 +29,9 @@ function logout() {
 
 			<!-- RIGHT -->
 			<div class="nav-right">
-				<router-link to="/add" class="btn"> + Add win </router-link>
+				<router-link :to="{ name: 'add-win' }" class="btn">
+					+ Add win
+				</router-link>
 
 				<button v-if="isLoggedIn" class="btn" type="button" @click="logout">
 					Logout

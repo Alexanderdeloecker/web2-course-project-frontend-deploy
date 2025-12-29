@@ -72,3 +72,19 @@ button.btn {
 	align-items: center;
 	justify-content: center;
 }
+/* =========================
+   BUTTON VARIANT — INVERSE
+========================= */
+
+.btn--inverse {
+	background: #fff;
+	color: #111;
+	border-color: #fff;
+    margin-top: 20px;
+}
+
+.btn--inverse:hover {
+	background: #111;
+	color: #fff;
+	border-color: #111;
+}

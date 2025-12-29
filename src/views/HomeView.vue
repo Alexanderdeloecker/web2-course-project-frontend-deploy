@@ -222,7 +222,9 @@ function initScrollStory() {
 							{{ safeText(featuredWin.title, "Untitled win") }}
 						</h2>
 						<p class="featured-text">
-							{{ safeText(featuredWin.description, "No description provided.") }}
+							{{
+								safeText(featuredWin.description, "No description provided.")
+							}}
 						</p>
 						<span class="category">
 							{{ featuredWin.category || "general" }}
@@ -262,7 +264,7 @@ function initScrollStory() {
 			<div class="scene-inner">
 				<h2>Your story belongs here.</h2>
 				<p>Add your achievement to the Wall of Fame.</p>
-				<router-link to="/add-win" class="cta-btn">
+				<router-link to="/add-win" class="btn btn--inverse">
 					Add your win →
 				</router-link>
 			</div>
