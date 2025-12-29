@@ -1,0 +1,41 @@
+.app-header {
+	height: 64px;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 28px;
+
+	background: rgba(255, 255, 255, 0.85);
+	backdrop-filter: blur(12px);
+	border-bottom: 1px solid var(--border);
+}
+
+.nav-left,
+.nav-right {
+	display: flex;
+	align-items: center;
+	gap: 18px;
+}
+
+.app-header a {
+	text-decoration: none;
+	color: var(--text);
+	font-weight: 500;
+}
+
+.add-btn {
+	width: 36px;
+	height: 36px;
+	border-radius: 999px;
+	display: grid;
+	place-items: center;
+	background: rgba(0, 0, 0, 0.06);
+}
+
+.app-header button {
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-weight: 500;
+}

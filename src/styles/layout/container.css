@@ -1,0 +1,11 @@
+/* CONTAINER — explicit & safe */
+.container {
+	margin: 0 auto;
+	padding: 0 24px;
+}
+
+/* NEVER apply container implicitly */
+main.container,
+section.container {
+	all: unset;
+}

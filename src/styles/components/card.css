@@ -1,0 +1,50 @@
+.card {
+	cursor: pointer;
+	border-radius: var(--radius-md);
+	overflow: hidden;
+	background: rgba(255, 255, 255, 0.85);
+	border: 1px solid var(--border);
+	transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card:hover {
+	transform: translateY(-4px);
+	box-shadow: var(--shadow-md);
+}
+
+.card img {
+	width: 100%;
+	height: 220px;
+	object-fit: cover;
+}
+
+.card .content {
+	padding: 18px;
+}
+
+.card .category {
+	font-size: 12px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	opacity: 0.55;
+}
+
+.card .title {
+	margin: 6px 0 2px;
+	font-size: 1.05rem;
+}
+
+.card .meta {
+	font-size: 0.8rem;
+	color: #777;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 8px;
+}
+
+.card .description {
+	font-size: 0.9rem;
+	color: #555;
+	line-height: 1.5;
+}

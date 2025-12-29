@@ -1,0 +1,60 @@
+.add {
+	min-height: calc(100vh - 64px);
+	background: #f4f5f8;
+	display: grid;
+	place-items: center;
+}
+
+.add .container {
+	width: min(560px, calc(100% - 32px));
+}
+
+.add h1 {
+	font-size: 40px;
+	letter-spacing: -0.03em;
+}
+
+.add .sub {
+	margin-top: 8px;
+	color: #555;
+}
+
+.form {
+	margin-top: 28px;
+	display: grid;
+	gap: 14px;
+}
+
+input,
+textarea,
+select {
+	padding: 14px;
+	border-radius: 14px;
+	border: 1px solid #ddd;
+	font-size: 14px;
+}
+
+textarea {
+	min-height: 120px;
+	resize: vertical;
+}
+
+button {
+	margin-top: 10px;
+	padding: 14px;
+	border-radius: 16px;
+	background: #111;
+	color: white;
+	border: none;
+	cursor: pointer;
+}
+
+button:disabled {
+	opacity: 0.7;
+	cursor: not-allowed;
+}
+
+.error {
+	color: #c00;
+	font-size: 14px;
+}
