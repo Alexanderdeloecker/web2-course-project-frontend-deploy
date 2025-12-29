@@ -1,3 +1,7 @@
+/* =========================
+   PROFILE — COMPACT EDITORIAL FLOW
+   ========================= */
+
 .profile {
 	--bg-dark: 0;
 
@@ -18,6 +22,7 @@
 	position: relative;
 }
 
+/* dark overlay (GSAP controlled) */
 .profile::before {
 	content: "";
 	position: fixed;
@@ -29,7 +34,60 @@
 	z-index: 0;
 }
 
-/* INTRO */
+/* =========================
+   SCENE SPACING (KEY FIX)
+   ========================= */
+
+.profile .scene {
+	width: 100%;
+	position: relative;
+
+	/* ❗ geen full screen meer */
+	min-height: auto;
+
+	/* compacte verticale flow */
+	padding: 96px 0;
+}
+
+/* iets meer adem bij intro */
+.profile .scene.intro {
+	padding-top: 120px;
+	padding-bottom: 96px;
+}
+
+/* pinned scenes iets ruimer */
+.profile .scene.act-dark,
+.profile .scene.act-wins {
+	padding-top: 120px;
+	padding-bottom: 120px;
+}
+
+/* =========================
+   CONTENT ALIGNMENT
+   ========================= */
+
+/* alles wat “editorial” is centreren */
+.profile .intro,
+.profile .act-stats,
+.profile .act-dark,
+.profile .act-editorial {
+	padding-left: 8vw;
+	padding-right: 8vw;
+}
+
+.profile .intro > *,
+.profile .act-stats > *,
+.profile .dark-inner,
+.profile .editorial {
+	max-width: 1200px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/* =========================
+   INTRO
+   ========================= */
+
 .intro h1 {
 	font-size: clamp(3rem, 6vw, 4.5rem);
 	letter-spacing: -0.04em;
@@ -42,7 +100,10 @@
 	color: #444;
 }
 
-/* STATS */
+/* =========================
+   STATS
+   ========================= */
+
 .stats {
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
@@ -67,9 +128,12 @@
 	color: #666;
 }
 
-/* DARK ACT */
+/* =========================
+   DARK ACT
+   ========================= */
+
 .act-dark {
-	max-width: 1100px;
+	z-index: 1;
 }
 
 .dark-inner {
@@ -98,7 +162,10 @@
 	font-size: 1.05rem;
 }
 
-/* EDITORIAL */
+/* =========================
+   EDITORIAL
+   ========================= */
+
 .editorial {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
@@ -124,13 +191,17 @@
 	line-height: 1.7;
 }
 
-/* WINS */
+/* =========================
+   WINS (FULL WIDTH + CENTERED CONTENT)
+   ========================= */
+
 .act-wins {
-	max-width: 1400px;
+	width: 100%;
 	padding-left: 0;
 	padding-right: 0;
 }
 
+/* titel mag links “editorial” staan */
 .wins-title {
 	font-size: 2.6rem;
 	margin: 0 0 28px 8vw;
@@ -161,18 +232,27 @@
 	font-style: italic;
 }
 
-/* MOBILE */
+/* =========================
+   RESPONSIVE
+   ========================= */
+
 @media (max-width: 900px) {
 	.stats,
 	.editorial,
 	.wins-row {
 		grid-template-columns: 1fr;
 	}
+
+	.profile .scene {
+		padding: 72px 0;
+	}
+
 	.wins-title,
 	.wins-note,
 	.empty-state {
 		margin-left: 6vw;
 	}
+
 	.wins-rows {
 		padding: 0 6vw;
 	}

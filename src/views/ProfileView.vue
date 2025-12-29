@@ -196,70 +196,81 @@ function initStory() {
 	<main class="profile">
 		<!-- ACT I — INTRO -->
 		<section class="scene intro">
-			<h1>Your Wall of Fame</h1>
-			<p class="lead">
-				A personal archive of effort, growth and things that matter — beyond
-				grades.
-			</p>
+			<div class="profile-content">
+				<h1>Your Wall of Fame</h1>
+				<p class="lead">
+					A personal archive of effort, growth and things that matter — beyond
+					grades.
+				</p>
+			</div>
 		</section>
 
 		<!-- ACT II — STATS -->
 		<section class="scene act-stats">
-			<div class="stats">
-				<div class="stat">
-					<strong>{{ total }}</strong>
-					<span>wins</span>
-				</div>
-				<div class="stat">
-					<strong>{{ categories.length }}</strong>
-					<span>domains</span>
-				</div>
-				<div class="stat">
-					<strong>{{ latest?.category || "—" }}</strong>
-					<span>latest focus</span>
+			<div class="profile-content">
+				<div class="stats">
+					<div class="stat">
+						<strong>{{ total }}</strong>
+						<span>wins</span>
+					</div>
+					<div class="stat">
+						<strong>{{ categories.length }}</strong>
+						<span>domains</span>
+					</div>
+					<div class="stat">
+						<strong>{{ latest?.category || "—" }}</strong>
+						<span>latest focus</span>
+					</div>
 				</div>
 			</div>
 		</section>
 
 		<!-- ACT III — DARK PHASE (pinned) -->
 		<section class="scene act-dark">
-			<div class="dark-inner">
-				<p class="dark-kicker">YOUR STORY</p>
-				<h2 class="dark-title">Niet alleen projecten tellen.</h2>
+			<div class="profile-content">
+				<div class="dark-inner">
+					<p class="dark-kicker">YOUR STORY</p>
+					<h2 class="dark-title">Niet alleen projecten tellen.</h2>
 
-				<div class="dark-lines">
-					<p>
-						Dit is geen CV. Dit is een verzameling van dingen waar tijd, energie
-						en karakter in zit.
-					</p>
-					<p>Geen “perfect profiel”. Wel groei, effort en discipline.</p>
-					<p>Elke win laat iets zien dat je niet kan faken.</p>
+					<div class="dark-lines">
+						<p>
+							Dit is geen CV. Dit is een verzameling van dingen waar tijd,
+							energie en karakter in zit.
+						</p>
+						<p>Geen “perfect profiel”. Wel groei, effort en discipline.</p>
+						<p>Elke win laat iets zien dat je niet kan faken.</p>
+					</div>
 				</div>
 			</div>
 		</section>
 
 		<!-- ACT IV — LIGHT EDITORIAL -->
 		<section class="scene act-editorial">
-			<div class="editorial">
-				<div class="editorial-card">
-					<h3>Editorial, maar met energie.</h3>
-					<p>
-						Grote typografie, veel ruimte en motion die je door de pagina trekt
-						— zonder drukte.
-					</p>
-				</div>
-				<div class="editorial-card">
-					<h3>Elke win = een verhaal.</h3>
-					<p>
-						Groot of klein. Alleen of samen. Dit is waar groei zichtbaar wordt.
-					</p>
+			<div class="profile-content">
+				<div class="editorial">
+					<div class="editorial-card">
+						<h3>Editorial, maar met energie.</h3>
+						<p>
+							Grote typografie, veel ruimte en motion die je door de pagina
+							trekt — zonder drukte.
+						</p>
+					</div>
+					<div class="editorial-card">
+						<h3>Elke win = een verhaal.</h3>
+						<p>
+							Groot of klein. Alleen of samen. Dit is waar groei zichtbaar
+							wordt.
+						</p>
+					</div>
 				</div>
 			</div>
 		</section>
 
 		<!-- ACT V — WINS (pinned horizontal convergence) -->
+		<!-- bewust GEEN profile-content wrapper: deze act moet full width blijven -->
 		<section class="scene act-wins">
 			<h2 class="wins-title">The wins</h2>
+
 			<p v-if="!loading && wins.length === 0" class="empty-state">
 				You haven’t added any wins yet.
 			</p>
