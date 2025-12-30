@@ -70,3 +70,27 @@ export async function register(email, password, name) {
 
 	return data;
 }
+/* ---------- DELETE ---------- */
+export async function deleteWin(id) {
+	const token = getToken();
+	if (!token) throw new Error("Not logged in");
+
+	const res = await fetch(`${API_BASE_URL}/api/wins/${id}`, {
+		method: "DELETE",
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	});
+
+	if (!res.ok) {
+		// ❗ probeer alleen JSON te lezen als het er is
+		let message = "Failed to delete win";
+		try {
+			const data = await res.json();
+			message = data.error || message;
+		} catch (_) {}
+		throw new Error(message);
+	}
+
+	// ✅ niets returnen is OK bij DELETE
+}

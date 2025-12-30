@@ -48,3 +48,36 @@
 	color: #555;
 	line-height: 1.5;
 }
+
+.win-card {
+	position: relative;
+}
+
+.win-delete {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+
+	height: 32px;
+	padding: 0 14px;
+
+	border-radius: 999px;
+	border: none;
+
+	background: rgba(255, 60, 60, 0.92);
+	color: white;
+	font-size: 13px;
+	font-weight: 500;
+
+	cursor: pointer;
+	opacity: 0;
+	transition: opacity 0.2s ease, transform 0.15s ease;
+}
+
+.win-card:hover .win-delete {
+	opacity: 1;
+}
+
+.win-delete:hover {
+	transform: scale(1.05);
+}

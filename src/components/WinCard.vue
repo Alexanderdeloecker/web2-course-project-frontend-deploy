@@ -3,8 +3,20 @@ import { useRouter } from "vue-router";
 import { computed } from "vue";
 
 const props = defineProps({
-	win: { type: Object, required: true },
+	win: Object,
+	showDelete: {
+		type: Boolean,
+		default: false,
+	},
 });
+
+const emit = defineEmits(["delete"]);
+
+function onDelete() {
+	if (confirm("Delete this win?")) {
+		emit("delete", props.win._id);
+	}
+}
 
 const router = useRouter();
 
@@ -22,7 +34,11 @@ const formattedDate = computed(() =>
 </script>
 
 <template>
-	<article class="card" @click="openWin">
+	<article class="card win-card" @click="openWin">
+		<button v-if="showDelete" class="win-delete" @click.stop="onDelete">
+			Delete
+		</button>
+
 		<img class="image" :src="win.imageUrl" alt="" />
 
 		<div class="content">

@@ -1,5 +1,25 @@
-# Vue 3 + Vite
+# Wall of Fame – WEB2 Project
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Full-stack Wall of Fame application where users can showcase personal achievements.
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+## Tech stack
+
+- Frontend: Vue 3 + Vite
+- Backend: Node.js + Express
+- Database: MongoDB Atlas
+- Auth: JWT
+- Hosting:
+  - Frontend: Netlify
+  - Backend: Render
+
+## Live links
+
+- Frontend: https://...
+- Backend API: https://wall-of-fame-api.onrender.com
+
+## Features
+
+- Authentication (register/login)
+- Create, edit and delete wins
+- Ownership protection
+- Responsive UI with animations

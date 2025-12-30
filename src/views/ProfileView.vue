@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, nextTick, onBeforeUnmount } from "vue";
-import { getMyWins } from "../api/api";
+import { getMyWins, deleteWin } from "../api/api";
 import WinCard from "../components/WinCard.vue";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
@@ -190,6 +190,23 @@ function initStory() {
 		tl.to(".wins-rows", { scale: 1, duration: 0.6, ease: "power1.out" }, 0.75);
 	}
 }
+async function handleDelete(id) {
+	try {
+		await deleteWin(id);
+
+		// 1️⃣ UI update
+		wins.value = wins.value.filter((w) => w._id !== id);
+
+		// 2️⃣ GSAP reset (belangrijk!)
+		await nextTick();
+
+		ScrollTrigger.getAll().forEach((t) => t.kill());
+		initStory();
+	} catch (err) {
+		console.error(err);
+		alert("Delete failed. Please try again.");
+	}
+}
 </script>
 
 <template>
@@ -267,7 +284,6 @@ function initStory() {
 		</section>
 
 		<!-- ACT V — WINS (pinned horizontal convergence) -->
-		<!-- bewust GEEN profile-content wrapper: deze act moet full width blijven -->
 		<section class="scene act-wins">
 			<h2 class="wins-title">The wins</h2>
 
@@ -281,21 +297,21 @@ function initStory() {
 				<!-- Row 1 (from right) -->
 				<div class="wins-row row-1">
 					<div v-for="w in row1" :key="w._id" class="win-shell">
-						<WinCard :win="w" />
+						<WinCard :win="w" :showDelete="true" @delete="handleDelete" />
 					</div>
 				</div>
 
 				<!-- Row 2 (from left) -->
 				<div class="wins-row row-2">
 					<div v-for="w in row2" :key="w._id" class="win-shell">
-						<WinCard :win="w" />
+						<WinCard :win="w" :showDelete="true" @delete="handleDelete" />
 					</div>
 				</div>
 
 				<!-- Row 3 (from right) -->
 				<div class="wins-row row-3">
 					<div v-for="w in row3" :key="w._id" class="win-shell">
-						<WinCard :win="w" />
+						<WinCard :win="w" :showDelete="true" @delete="handleDelete" />
 					</div>
 				</div>
 			</div>
