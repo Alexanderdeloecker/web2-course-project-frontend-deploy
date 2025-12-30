@@ -14,7 +14,7 @@ Full-stack Wall of Fame application where users can showcase personal achievemen
 
 ## Live links
 
-- Frontend: https://...
+- Frontend: https://frolicking-centaur-5dcb19.netlify.app/profile
 - Backend API: https://wall-of-fame-api.onrender.com
 
 ## Features
