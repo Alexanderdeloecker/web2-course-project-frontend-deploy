@@ -216,7 +216,7 @@ async function handleDelete(id) {
 			<div class="profile-content">
 				<h1>Your Wall of Fame</h1>
 				<p class="lead">
-					A personal archive of effort, growth and things that matter — beyond
+					A personal archive of effort, growth and things that matter beyond
 					grades.
 				</p>
 			</div>
@@ -269,7 +269,7 @@ async function handleDelete(id) {
 						<h3>Editorial, maar met energie.</h3>
 						<p>
 							Grote typografie, veel ruimte en motion die je door de pagina
-							trekt — zonder drukte.
+							trekt zonder drukte.
 						</p>
 					</div>
 					<div class="editorial-card">
