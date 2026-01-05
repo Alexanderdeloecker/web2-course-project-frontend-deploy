@@ -5,7 +5,7 @@ import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import WinCard from "../components/WinCard.vue";
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger);  
 
 /* ---------------- STATE ---------------- */
 const wins = ref([]);

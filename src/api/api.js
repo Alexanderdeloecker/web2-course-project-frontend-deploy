@@ -35,7 +35,7 @@ export async function addWin(formData) {
 		headers: {
 			Authorization: `Bearer ${token}`,
 		},
-		body: formData, // ⬅️ FormData, GEEN JSON
+		body: formData,
 	});
 
 	const data = await res.json();
